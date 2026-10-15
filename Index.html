@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>بازی پرستو — آموزگار کیوانی</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{ --ink:#0b3a5a; }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"Vazirmatn",Tahoma,system-ui,sans-serif;
+  background:linear-gradient(180deg,#6fc2ee 0%,#a7dcf8 45%,#e9f8ff 100%);
+  min-height:100vh; overflow-x:hidden; color:var(--ink);
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ---------- پس‌زمینه ---------- */
+.bg-sun{position:fixed;top:-70px;right:-70px;width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle,#fff6bd,#ffe066 55%,rgba(255,224,102,0) 72%);
+  opacity:.9;pointer-events:none;z-index:0}
+.bg-hills{position:fixed;bottom:-50px;left:-10%;right:-10%;height:190px;border-radius:50% 50% 0 0;
+  background:linear-gradient(#8fdc9b,#4fae63);opacity:.5;pointer-events:none;z-index:0}
+.bg-cloud{position:fixed;background:#fff;border-radius:100px;opacity:.6;filter:blur(1px);pointer-events:none;z-index:0}
+.c1{width:180px;height:58px;top:12%;left:-220px;animation:drift 40s linear infinite}
+.c2{width:120px;height:42px;top:30%;left:-170px;animation:drift 56s linear infinite 7s}
+.c3{width:230px;height:70px;top:5%;left:-280px;animation:drift 68s linear infinite 15s}
+@keyframes drift{to{transform:translateX(calc(100vw + 340px))}}
+
+/* ---------- چیدمان ---------- */
+.wrap{position:relative;z-index:2;max-width:720px;margin:0 auto;min-height:100vh;
+  padding:12px 14px 16px;display:flex;flex-direction:column;gap:12px}
+
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  background:rgba(255,255,255,.75);border:1px solid #fff;border-radius:16px;
+  padding:10px 14px;font-weight:700;font-size:.95rem;
+  box-shadow:0 6px 18px rgba(9,70,110,.12);backdrop-filter:blur(8px)}
+.hud-item{white-space:nowrap}
+
+/* ---------- صحنه ---------- */
+.stage{position:relative;height:200px;flex:0 0 auto;border-radius:22px;overflow:hidden;
+  background:linear-gradient(180deg,#c9ecff,#eaf7ff 70%,#f7fcff);
+  border:1px solid #fff;
+  box-shadow:0 10px 26px rgba(9,70,110,.14), inset 0 0 40px rgba(140,200,255,.35)}
+.stage-cloud{position:absolute;background:#fff;border-radius:100px;opacity:.8}
+.s1{width:110px;height:32px;top:18px;left:26px;animation:sway 14s ease-in-out infinite alternate}
+.s2{width:82px;height:24px;top:58px;right:36px;animation:sway 18s ease-in-out infinite alternate-reverse}
+@keyframes sway{from{transform:translateX(-14px)}to{transform:translateX(14px)}}
+
+.bird{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:190px;z-index:3}
+.bird-inner{animation:floaty 2.6s ease-in-out infinite}
+.bird svg{display:block;width:100%;height:auto;filter:drop-shadow(0 10px 10px rgba(10,50,90,.2))}
+
+@keyframes floaty{
+  0%,100%{transform:translateY(0) rotate(-2deg)}
+  50%{transform:translateY(-13px) rotate(2deg)}
+}
+@keyframes happy{
+  0%{transform:translateY(0) scale(1) rotate(0)}
+  35%{transform:translateY(-30px) scale(1.08) rotate(-7deg)}
+  70%{transform:translateY(-4px) scale(1) rotate(4deg)}
+  100%{transform:translateY(0) scale(1) rotate(0)}
+}
+.bird-inner.happy{animation:happy .8s ease-in-out}
+@keyframes hitFall{
+  0%{transform:translate(0,0) rotate(0)}
+  15%{transform:translate(14px,-12px) rotate(-12deg)}
+  100%{transform:translate(-14px,200px) rotate(-78deg);opacity:0}
+}
+.bird-inner.hit{animation:hitFall 1.1s cubic-bezier(.45,0,.85,.55) forwards}
+
+/* ---------- تیر ---------- */
+.arrow{position:absolute;top:50%;left:50%;width:120px;height:6px;margin-top:-3px;
+  background:linear-gradient(90deg,#6b4522,#b07c40);border-radius:3px;
+  transform:translate(-500px,0);opacity:0;pointer-events:none;z-index:4}
+.arrow::after{content:"";position:absolute;right:-17px;top:-9px;
+  border-left:19px solid #d7dee7;border-top:12px solid transparent;border-bottom:12px solid transparent}
+.arrow::before{content:"";position:absolute;left:-10px;top:-7px;
+  border-right:12px solid #e45b5b;border-top:10px solid transparent;border-bottom:10px solid transparent}
+@keyframes shoot{
+  0%{transform:translate(-520px,0);opacity:0}
+  15%{opacity:1}
+  100%{transform:translate(-140px,0);opacity:1}
+}
+
+/* ---------- کارت سؤال ---------- */
+.card{background:rgba(255,255,255,.88);border:1px solid #fff;border-radius:22px;
+  padding:16px;display:flex;flex-direction:column;gap:14px;flex:1 0 auto;
+  box-shadow:0 12px 30px rgba(9,70,110,.14)}
+.hint{text-align:center;font-size:1rem;line-height:1.9;font-weight:700;color:#0d4a73;
+  background:#eaf6ff;border-radius:14px;padding:10px 12px}
+.hint::before{content:"🔎 راهنما: ";color:#2b8ac6}
+
+.options{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.opt{font-family:inherit;font-size:1.15rem;font-weight:700;padding:15px 10px;border-radius:14px;
+  border:2px solid #a8d4ee;background:#fff;color:var(--ink);cursor:pointer;transition:.18s}
+.opt:hover:not(:disabled){background:#eaf6ff;transform:translateY(-2px)}
+.opt:disabled{cursor:default}
+.opt.correct{background:#b9f0c9;border-color:#2fae5f;color:#0a5c2c;transform:scale(1.03)}
+.opt.wrong{background:#ffc9c9;border-color:#e04a4a;color:#8a1010;animation:wrongShake .4s}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+.footer{text-align:center;font-size:.85rem;font-weight:700;opacity:.7}
+
+/* ---------- افکت‌ها ---------- */
+.flash{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:0;transition:opacity .18s;
+  background:radial-gradient(circle,rgba(255,70,70,.45),rgba(255,0,0,.12))}
+.flash.on{opacity:1}
+@keyframes shakeK{0%,100%{transform:translate(0)}20%{transform:translate(-8px,3px)}
+  40%{transform:translate(7px,-4px)}60%{transform:translate(-5px,-2px)}80%{transform:translate(4px,3px)}}
+.wrap.shake{animation:shakeK .45s}
+
+/* ---------- پنل شروع / پایان ---------- */
+.overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
+  padding:18px;background:rgba(6,40,66,.55);backdrop-filter:blur(4px);
+  opacity:0;visibility:hidden;transition:.25s}
+.overlay.show{opacity:1;visibility:visible}
+.panel{background:#fff;border-radius:24px;padding:24px 20px;width:100%;max-width:430px;
+  text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.32);max-height:90vh;overflow:auto}
+.panel h2{font-size:1.5rem;margin-bottom:10px;color:#0d4a73}
+.end-emoji{font-size:3rem;line-height:1;margin-bottom:6px}
+.bigscore{font-size:3rem;font-weight:900;color:#1a8f4c;line-height:1.1}
+.stat{font-size:.85rem;opacity:.7;margin-bottom:14px}
+.rows{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+.row{display:flex;justify-content:space-between;background:#f1f8ff;border-radius:12px;
+  padding:10px 14px;font-size:.95rem}
+.msg{font-size:.98rem;line-height:1.9;margin:10px 0 16px}
+.btn{font-family:inherit;font-size:1.05rem;font-weight:800;color:#fff;cursor:pointer;
+  border:none;border-radius:14px;padding:14px 26px;width:100%;
+  background:linear-gradient(135deg,#2fa8e0,#1a7fc0);
+  box-shadow:0 8px 20px rgba(26,127,192,.35);transition:.18s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(26,127,192,.45)}
+.maker{margin-top:14px;font-size:.85rem;font-weight:700;color:#7a93a8}
+.rules{background:#f1f8ff;border-radius:14px;padding:12px;font-size:.9rem;line-height:2;text-align:right}
+</style>
+</head>
+<body>
+
+<div class="bg-sun"></div>
+<div class="bg-cloud c1"></div>
+<div class="bg-cloud c2"></div>
+<div class="bg-cloud c3"></div>
+<div class="bg-hills"></div>
+
+<div class="wrap" id="wrap">
+
+  <div class="hud">
+    <div class="hud-item">🏆 امتیاز: <span id="score">۰</span></div>
+    <div class="hud-item" id="hearts">❤️❤️❤️</div>
+    <div class="hud-item">📝 <span id="qnum">۱/۱۲</span></div>
+  </div>
+
+  <div class="stage">
+    <div class="stage-cloud s1"></div>
+    <div class="stage-cloud s2"></div>
+
+    <div class="bird">
+      <div class="bird-inner" id="birdInner">
+        <svg viewBox="0 0 220 160" aria-label="پرستو">
+          <!-- دم چنگالی -->
+          <path d="M78 90 L4 62 L40 96 L10 132 L80 106 Z" fill="#1b2c4d"/>
+          <!-- بدن -->
+          <ellipse cx="115" cy="92" rx="52" ry="24" fill="#213456"/>
+          <!-- شکم روشن -->
+          <path d="M74 100 q42 24 88 2 q-46 16 -88 -2 z" fill="#eef6ff"/>
+          <!-- بال -->
+          <path d="M112 78 Q86 6 22 26 Q84 46 104 100 Z" fill="#142642"/>
+          <!-- سر -->
+          <circle cx="160" cy="76" r="22" fill="#2a4270"/>
+          <!-- نوک -->
+          <path d="M178 72 L208 80 L178 88 Z" fill="#f5a63a"/>
+          <!-- چشم -->
+          <circle cx="166" cy="70" r="5" fill="#fff"/>
+          <circle cx="167" cy="70" r="2.6" fill="#08111f"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="arrow" id="arrow"></div>
+  </div>
+
+  <div class="card">
+    <div class="hint" id="hint">در حال آماده‌سازی…</div>
+    <div class="options" id="options"></div>
+  </div>
+
+  <div class="footer">سازنده: آموزگار کیوانی</div>
+</div>
+
+<div class="flash" id="flash"></div>
+
+<div class="overlay" id="overlay">
+  <div class="panel" id="panel"></div>
+</div>
+
+<script>
+/* ================= داده‌ها ================= */
+const DATA = [
+  { w:"تغییرات",  hint:"دگرگونی‌ها و عوض‌شدن‌ها",                 bad:["تغیرات","تغییراط"] },
+  { w:"مشغول",    hint:"سرگرمِ انجامِ کاری بودن",                 bad:["مشقول","مشغل"] },
+  { w:"قرقی",     hint:"پرنده‌ای شکاری و کوچک از خانواده‌ی بازها", bad:["قورقی","غرقی"] },
+  { w:"عقاب",     hint:"پرنده‌ی شکاریِ بزرگ و نیرومند",            bad:["عغاب","اقاب"] },
+  { w:"شاهین",    hint:"پرنده‌ی شکاریِ تیزپرواز",                  bad:["شائین","شهین"] },
+  { w:"حشرات",    hint:"جانوران کوچک مانند مورچه و زنبور",         bad:["حشراط","هشرات"] },
+  { w:"کمیاب",    hint:"کم پیدا می‌شود؛ نایاب",                   bad:["کمیاپ","کمی یاب"] },
+  { w:"معتدل",    hint:"نه گرم و نه سرد",                         bad:["معتادل","معدتل"] },
+  { w:"اوایل",    hint:"روزهای آغازینِ یک دوره",                  bad:["اوائل","اوال"] },
+  { w:"راهیابی",  hint:"راه پیدا کردن برای رسیدن به جایی",        bad:["راه یابی","راهه‌یابی"] },
+  { w:"طولانی",   hint:"دراز و کشیده",                            bad:["تولانی","طلوانی"] },
+  { w:"نهاده",    hint:"قرار داده شده (بن گذشته‌ی «نهادن»)",      bad:["نهاذه","نهادده"] }
+];
+
+/* ================= عناصر ================= */
+const $ = id => document.getElementById(id);
+const fa = n => Number(n).toLocaleString('fa-IR');
+
+const scoreEl   = $('score'),
+      heartsEl  = $('hearts'),
+      qnumEl    = $('qnum'),
+      hintEl    = $('hint'),
+      optionsEl = $('options'),
+      arrowEl   = $('arrow'),
+      birdInner = $('birdInner'),
+      wrapEl    = $('wrap'),
+      flashEl   = $('flash'),
+      overlayEl = $('overlay'),
+      panelEl   = $('panel');
+
+/* ================= وضعیت بازی ================= */
+let queue = [], idx = 0, score = 0, lives = 3, correctCount = 0, locked = false, cur = null;
+const MAX_LIVES = 3;
+
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+/* ================= HUD ================= */
+function updateHUD(){
+  scoreEl.textContent  = fa(score);
+  heartsEl.textContent = '❤️'.repeat(Math.max(0,lives)) + '🖤'.repeat(Math.max(0, MAX_LIVES-lives));
+  qnumEl.textContent   = fa(Math.min(idx+1, queue.length)) + '/' + fa(queue.length);
+}
+
+/* ================= جریان بازی ================= */
+function startGame(){
+  queue = shuffle(DATA.slice());
+  idx = 0; score = 0; lives = MAX_LIVES; correctCount = 0; locked = false;
+  birdInner.classList.remove('hit','happy');
+  overlayEl.classList.remove('show');
+  updateHUD();
+  showQuestion();
+}
+
+function showQuestion(){
+  if(lives <= 0 || idx >= queue.length){ endGame(); return; }
+  cur = queue[idx];
+  locked = false;
+
+  hintEl.textContent = cur.hint;
+  qnumEl.textContent = fa(idx+1) + '/' + fa(queue.length);
+
+  const opts = shuffle([cur.w, ...cur.bad]);
+  optionsEl.innerHTML = '';
+  opts.forEach(o=>{
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'opt';
+    b.textContent = o;
+    b.addEventListener('click', ()=>choose(b, o));
+    optionsEl.appendChild(b);
+  });
+  updateHUD();
+}
+
+function choose(btn, word){
+  if(locked) return;
+  locked = true;
+  [...optionsEl.children].forEach(b => b.disabled = true);
+
+  if(word === cur.w){
+    /* --- پاسخ درست --- */
+    btn.classList.add('correct');
+    score += 10;
+    correctCount++;
+    updateHUD();
+    happyBird();
+    setTimeout(()=>{ idx++; showQuestion(); }, 900);
+  }else{
+    /* --- پاسخ اشتباه: تیر به پرستو --- */
+    btn.classList.add('wrong');
+    [...optionsEl.children].forEach(b=>{ if(b.textContent === cur.w) b.classList.add('correct'); });
+    lives--;
+    score = Math.max(0, score - 5);
+    updateHUD();
+    shoot();
+    setTimeout(()=>{
+      if(lives <= 0) endGame();
+      else { idx++; showQuestion(); }
+    }, 1650);
+  }
+}
+
+/* ================= انیمیشن‌ها ================= */
+function happyBird(){
+  birdInner.classList.remove('happy');
+  void birdInner.offsetWidth;
+  birdInner.classList.add('happy');
+  setTimeout(()=>birdInner.classList.remove('happy'), 820);
+}
+
+function shoot(){
+  /* آماده‌سازی تیر */
+  arrowEl.style.transition = 'none';
+  arrowEl.style.animation  = 'none';
+  arrowEl.style.opacity    = '';
+  arrowEl.style.transform  = '';
+  void arrowEl.offsetWidth;
+  arrowEl.style.animation  = 'shoot .32s ease-in forwards';
+
+  /* برخورد */
+  setTimeout(()=>{
+    birdInner.classList.add('hit');
+    flashEl.classList.add('on');
+    wrapEl.classList.add('shake');
+    setTimeout(()=>flashEl.classList.remove('on'), 230);
+    setTimeout(()=>wrapEl.classList.remove('shake'), 470);
+  }, 275);
+
+  /* محو شدن تیر */
+  setTimeout(()=>{
+    arrowEl.style.animation = 'none';
+    arrowEl.style.transform = 'translate(-140px,0)';
+    arrowEl.style.transition= 'opacity .3s';
+    arrowEl.style.opacity   = '0';
+  }, 660);
+
+  setTimeout(()=>{
+    arrowEl.style.transition = 'none';
+    arrowEl.style.transform  = '';
+    arrowEl.style.opacity    = '0';
+  }, 1010);
+
+  /* بازگشت پرستو */
+  setTimeout(()=>birdInner.classList.remove('hit'), 1550);
+}
+
+/* ================= پایان بازی ================= */
+function endGame(){
+  const total = queue.length;
+  const pct   = total ? Math.round(correctCount / total * 100) : 0;
+
+  let emoji, title, msg;
+  if(pct >= 90){ emoji='🌟'; title='عالی بود!'; msg='پرستو سالم به آسمان رسید. تو در املای این واژه‌ها استادی!'; }
+  else if(pct >= 70){ emoji='👏'; title='خیلی خوب!'; msg='کارت خوب بود؛ فقط چند واژه را یک بار دیگر مرور کن.'; }
+  else if(pct >= 50){ emoji='🙂'; title='قابل قبول'; msg='با کمی تمرین بیشتر، نتیجه‌ات خیلی بهتر می‌شود.'; }
+  else { emoji='💪'; title='نیاز به تمرین'; msg='نگران نباش! واژه‌ها را با دقت بخوان و دوباره بازی کن.'; }
+
+  panelEl.innerHTML = `
+    <div class="end-emoji">${emoji}</div>
+    <h2>${title}</h2>
+    <div class="bigscore">${fa(score)}</div>
+    <div class="stat">امتیاز شما</div>
+    <div class="rows">
+      <div class="row"><span>پاسخ‌های درست</span><b>${fa(correctCount)} از ${fa(total)}</b></div>
+      <div class="row"><span>درصد موفقیت</span><b>${fa(pct)}٪</b></div>
+      <div class="row"><span>جان‌های باقی‌مانده</span><b>${fa(Math.max(0,lives))} ❤️</b></div>
+    </div>
+    <p class="msg">${msg}</p>
+    <button class="btn" id="againBtn">🔄 بازی دوباره</button>
+    <div class="maker">سازنده: آموزگار کیوانی</div>
+  `;
+  $('againBtn').addEventListener('click', startGame);
+  overlayEl.classList.add('show');
+}
+
+/* ================= صفحه‌ی شروع ================= */
+function startScreen(){
+  panelEl.innerHTML = `
+    <div class="end-emoji">🐦</div>
+    <h2>بازی پرستو</h2>
+    <p class="msg">واژه‌ی درست را انتخاب کن!<br>هر انتخابِ اشتباه، یک تیر به پرستو است. 🏹</p>
+    <div class="rules">
+      ✅ پاسخ درست: <b>۱۰+</b> امتیاز<br>
+      ❌ پاسخ غلط: <b>۵−</b> امتیاز و از دست دادن یک ❤️<br>
+      🎯 تعداد واژه‌ها: <b>${fa(DATA.length)}</b> واژه
+    </div>
+    <br>
+    <button class="btn" id="startBtn">▶️ شروع بازی</button>
+    <div class="maker">سازنده: آموزگار کیوانی</div>
+  `;
+  $('startBtn').addEventListener('click', startGame);
+  overlayEl.classList.add('show');
+}
+
+/* ================= اجرا ================= */
+updateHUD();
+startScreen();
+</script>
+</body>
+</html>
